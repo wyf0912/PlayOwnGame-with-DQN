@@ -3,7 +3,7 @@
 For the convenience of training AI, I write a simple game which can accommodate two players.<br>
 So I can train the AI by computer against each other. And limited to my time and ability, the game is made very rough.<br> 
 But if the AI model trained well, maybe the confrontation process is also wondeful.<br>
-<center><img src="https://raw.githubusercontent.com/wyf0912/PlayOwnGame-with-DQN/master/github_img/UI.jpg" width = "300"  alt="游戏界面" align=center /></center><br>
+<center><img src="https://raw.githubusercontent.com/wyf0912/PlayOwnGame-with-DQN/master/github_img/UI.jpg" width = "300"  alt="游戏界面" align=center /></center>
 And this is the UI of the game.<br>
 
 ## The rule of the game 

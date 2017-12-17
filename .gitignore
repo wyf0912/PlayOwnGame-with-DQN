@@ -1,0 +1,7 @@
+
+*.index
+*.meta
+*.data-00000-of-00001
+saved_networks/checkpoint
+README.html
+__pycache__/ball.cpython-35.pyc
