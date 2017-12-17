@@ -13,7 +13,7 @@ GAME = 'PlayBall' # the name of the game being played for log files
 ACTIONS = 5 # number of valid actions
 GAMMA = 0.99 # decay rate of past observations
 OBSERVE = 100000. # timesteps to observe before training
-OBSERVE = 200000.
+OBSERVE = 2000.
 EXPLORE = 2000000. # frames over which to anneal epsilon
 EXPLORE = 8000000. # frames over which to anneal epsilon
 FINAL_EPSILON = 0.001 # final value of epsilon
@@ -74,8 +74,12 @@ def createNetwork():
     b_fc3 = bias_variable([96])
     W_fc4 = weight_variable([96, 96])
     b_fc4 = bias_variable([96])
-    W_fc5 = weight_variable([96, ACTIONS])
-    b_fc5 = bias_variable([ACTIONS])
+    W_fc5 = weight_variable([96, 96])
+    b_fc5 = bias_variable([96])
+    W_fc6 = weight_variable([96, 96])
+    b_fc6 = bias_variable([96])
+    W_fc7 = weight_variable([96, ACTIONS])
+    b_fc7 = bias_variable([ACTIONS])
 
     # input layer
     s = tf.placeholder("float", [None,48])
@@ -85,17 +89,21 @@ def createNetwork():
     h_fc2 = tf.nn.relu(tf.matmul(h_fc1, W_fc2) + b_fc2)
     h_fc3 = tf.nn.relu(tf.matmul(h_fc2, W_fc3) + b_fc3)
     h_fc4 = tf.nn.relu(tf.matmul(h_fc3, W_fc4) + b_fc4)
+    h_fc5 = tf.nn.relu(tf.matmul(h_fc4, W_fc5) + b_fc5)
+    h_fc6 = tf.nn.relu(tf.matmul(h_fc5, W_fc6) + b_fc6)
     # readout layer
-    readout = tf.matmul(h_fc4, W_fc5) + b_fc5
+    readout = tf.matmul(h_fc6, W_fc7) + b_fc7
+    w_fc=[W_fc1,W_fc2,W_fc3,W_fc4,W_fc5,W_fc6,W_fc7]
+    return s, readout,w_fc
 
-    return s, readout
-
-def trainNetwork(s, readout, sess):
+def trainNetwork(s, readout, sess,w_fc):
     # define the cost function
     a = tf.placeholder("float", [None, ACTIONS])
     y = tf.placeholder("float", [None]) #y是q值
     readout_action = tf.reduce_sum(tf.multiply(readout, a), reduction_indices=1)
-    cost = tf.reduce_mean(tf.square(y - readout_action))
+    regularcost=tf.contrib.layers.l2_regularizer(0.001)(w_fc[0])
+    cost = tf.reduce_mean(tf.square(y - readout_action))+regularcost
+
     train_step = tf.train.AdamOptimizer(1e-6).minimize(cost)
 
     # open up a game state to communicate with emulator
@@ -126,6 +134,8 @@ def trainNetwork(s, readout, sess):
         print("Successfully loaded:", checkpoint.model_checkpoint_path)
     else:
         print("Could not find old network weights")
+
+
 
     # start training
     epsilon = INITIAL_EPSILON
@@ -241,10 +251,21 @@ def trainNetwork(s, readout, sess):
                     s: s2_j_batch}
                 )
 
+            if PLAYER == 0:
+                train_step.run(feed_dict={
+                    y: y2_batch,
+                    a: a2_batch,
+                    s: s2_j_batch}
+                )
+                train_step.run(feed_dict = {
+                    y : y1_batch,
+                    a : a1_batch,
+                    s : s1_j_batch}   #s1_j_batch是旧的状态
+                )
             print("/ Lost", cost.eval(feed_dict={
-                y: y2_batch,
-                a: a2_batch,
-                s: s2_j_batch}))
+                y: y1_batch,
+                a: a1_batch,
+                s: s1_j_batch}))
 
         # update the old values
         s1_t = s1_t1
@@ -267,6 +288,8 @@ def trainNetwork(s, readout, sess):
         print("TIMESTEP", t, "/ STATE", state, \
             "/ EPSILON", epsilon, "/ ACTION", action_index, "/ REWARD", reward1, \
             "/ Q_MAX %e" % np.max(readout1_t))
+
+        print("regularcost", regularcost.eval())
         # write info to files
         '''
         if t % 10000 <= 100:
@@ -278,8 +301,8 @@ def trainNetwork(s, readout, sess):
 
 def playGame():
     sess = tf.InteractiveSession()
-    s, readout= createNetwork()
-    trainNetwork(s, readout, sess)
+    s, readout, w_fc = createNetwork()
+    trainNetwork(s, readout, sess, w_fc)
 
 
 def main():

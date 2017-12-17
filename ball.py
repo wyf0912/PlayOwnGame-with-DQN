@@ -41,13 +41,13 @@ class Ball(pygame.sprite.Sprite):
         if self.rect.top <= 0:
             self.speed=[-self.speed[0],self.speed[1]]
             self.rect.top = 0
-            player1.score=player1.score-5
+            player1.score=player1.score-1
             player2.score = player2.score + 1
 
         if self.rect.top >= SCREEN_HEIGHT - self.rect.height:
             self.speed = [-self.speed[0], self.speed[1]]
             self.rect.top = SCREEN_HEIGHT - self.rect.height
-            player2.score=player2.score-5
+            player2.score=player2.score-1
             player1.score = player1.score + 1
 
         if self.rect.left <= 0:
@@ -223,7 +223,7 @@ def GameState(train=0,action1=[],action2=[]):
     #reward2=-(player1.score-last_score_1)
     reward2=player2.score-last_score_2
     #reward1=-(player2.score-last_score_2)
-    if player1.score-player2.score>30:
+    if player1.score-player2.score>10:
         # 绘制结果
         result_font = pygame.font.Font(None, 60)
         result_text = result_font.render("Player 1 WIN!" , True, (	233,165,32))
@@ -231,7 +231,7 @@ def GameState(train=0,action1=[],action2=[]):
         text_rect.topleft = [60, 260]
         screen.blit(result_text, text_rect)
         resultflag=1
-    elif player1.score-player2.score<-30:
+    elif player1.score-player2.score<-10:
         # 绘制结果
         result_font = pygame.font.Font(None, 60)
         result_text = result_font.render("Player 2 WIN!" , True, (	233,165,32))
