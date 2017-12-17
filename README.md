@@ -16,7 +16,9 @@ And this is the UI of the game.<br>
 ## The train modedl of AI
 >Because I only have a laptop and a Tencent cloud server without GPU<br>
 I didn't use convolutional neural network to deal the image and get the feature, but get the postion of players and the ball by the interface the game reserved when I write it.<br>
-Except for no convolutional neural network, the rest of the model is the same as DQN. And I added the number of all connected layers.<br>
+Except for no convolutional neural network, the rest of the model is the same as DQN. And I added the number of all connected layers. 
+>### To train two plaers at the same time
+>>In order to improe the trainning speed of the network. The two players use the same network at the same time. And for each of the frame, gradient descent will be run for two times. And I don't know if it will cause some problems.
 
 ## The AI is still training on my laptop and server
 
