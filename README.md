@@ -1,4 +1,8 @@
 # PlayOwnGame-with-DQN
+The tools used in the project:<br>
+>python 3.5<br>
+>tensorflow 1.3.0+<br>
+>pygame 1.93<br>
 # This project is to train a GAME AI.<br>
 For the convenience of training AI, I write a simple game which can accommodate two players.<br>
 So I can train the AI by computer against each other. And limited to my time and ability, the game is made very rough. But if the AI model trained well, maybe the confrontation process is also wondeful.<br>
@@ -18,5 +22,9 @@ Except for no convolutional neural network, the rest of the model is the same as
 >>In order to improe the trainning speed of the network. The two players use the same network at the same time. And for each of the frame, gradient descent will be run for two times. And I don't know if it will cause some problems.
 
 ## The AI is still training on my laptop and server
+### the problem I met at the moment
+I have changed the model several times. But it still didn't work well.<br>
+I don't know how to improvement it. 
+<center><img src="https://raw.githubusercontent.com/wyf0912/PlayOwnGame-with-DQN/master/github_img/img1.jpg" width = "300"  alt="emmm..." align=center /></center>
 
 

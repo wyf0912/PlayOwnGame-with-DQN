@@ -20,7 +20,7 @@ EXPLORE = 800000. # frames over which to anneal epsilon
 FINAL_EPSILON = 0.001 # final value of epsilon
 INITIAL_EPSILON = 1# starting value of epsilon
 REPLAY_MEMORY = 200000 # numberww of previous transitions to remember
-BATCH = 1 # size of minibatchwa 曾经64似乎太大了
+BATCH = 128 # size of minibatchwa 曾经64似乎太大了
 FRAME_PER_ACTION = 1
 PLAYER=0 #if player=0, Two computers are antagonistic to each other .if player=1,computer use player 1,if player=2 computer use player 2
 
@@ -102,7 +102,8 @@ def trainNetwork(s, readout, sess,w_fc):
     a = tf.placeholder("float", [None, ACTIONS])
     y = tf.placeholder("float", [None]) #y是q值
     readout_action = tf.reduce_sum(tf.multiply(readout, a), reduction_indices=1)
-    regularcost=tf.contrib.layers.l2_regularizer(0.001)(w_fc[0])
+
+    regularcost = tf.contrib.layers.l2_regularizer(0.001)(w_fc[0]) #L2正则化
     cost = tf.reduce_mean(tf.square(y - readout_action))+regularcost
 
     train_step = tf.train.AdamOptimizer(1e-6).minimize(cost)
@@ -133,7 +134,7 @@ def trainNetwork(s, readout, sess,w_fc):
     summary_writer=tf.summary.FileWriter('./logs', sess.graph)
     QMAX_val=tf.Variable(0.0)
     tf.summary.scalar('QMAX_val', QMAX_val)
-    merged_summary_op = tf.summary.merge_all()uikm
+    merged_summary_op = tf.summary.merge_all()
 
     sess.run(tf.initialize_all_variables())
 
