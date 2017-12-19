@@ -8,18 +8,19 @@ import ball as game
 import random
 import numpy as np
 from collections import deque
+import tensorboard
 
 GAME = 'PlayBall' # the name of the game being played for log files
 ACTIONS = 5 # number of valid actions
 GAMMA = 0.99 # decay rate of past observations
 OBSERVE = 100000. # timesteps to observe before training
-OBSERVE = 2000.
+OBSERVE = 20000.
 EXPLORE = 2000000. # frames over which to anneal epsilon
-EXPLORE = 8000000. # frames over which to anneal epsilon
+EXPLORE = 800000. # frames over which to anneal epsilon
 FINAL_EPSILON = 0.001 # final value of epsilon
 INITIAL_EPSILON = 1# starting value of epsilon
 REPLAY_MEMORY = 200000 # numberww of previous transitions to remember
-BATCH = 64 # size of minibatchwa
+BATCH = 1 # size of minibatchwa 曾经64似乎太大了
 FRAME_PER_ACTION = 1
 PLAYER=0 #if player=0, Two computers are antagonistic to each other .if player=1,computer use player 1,if player=2 computer use player 2
 
@@ -27,7 +28,7 @@ if PLAYER:
     OBSERVE=100
     EXPLORE=100000
     INITIAL_EPSILON=0.0
-    FINAL_EPSILON = 0.001
+    FINAL_EPSILON = 0.0
 
 def action_trans(action,player=1):
 
@@ -127,8 +128,15 @@ def trainNetwork(s, readout, sess,w_fc):
     #s_t=np.asmatrix(s_t)
     # saving and loading networks
     saver = tf.train.Saver()
-    sess.run(tf.initialize_all_variables())
     checkpoint = tf.train.get_checkpoint_state("saved_networks")
+
+    summary_writer=tf.summary.FileWriter('./logs', sess.graph)
+    QMAX_val=tf.Variable(0.0)
+    tf.summary.scalar('QMAX_val', QMAX_val)
+    merged_summary_op = tf.summary.merge_all()uikm
+
+    sess.run(tf.initialize_all_variables())
+
     if checkpoint and checkpoint.model_checkpoint_path:
         saver.restore(sess, checkpoint.model_checkpoint_path)
         print("Successfully loaded:", checkpoint.model_checkpoint_path)
@@ -177,7 +185,7 @@ def trainNetwork(s, readout, sess,w_fc):
 
         # run the selected action and observe next state and reward
         if PLAYER==0:
-            ball_state1, ball_state2, state1, state2, reward1, reward2,state1_ob,state2_ob,terminal = game.GameState(train=1,action1=action_trans(a1_t),action2=action_trans(a2_t,player=2)) #这里需要改，加第二个电脑训练
+            ball_state1, ball_state2, state1, state2, reward1, reward2,state1_ob,state2_ob,terminal = game.GameState(train=1,action1=action_trans(a1_t),action2=action_trans(a2_t,player=2))
         elif PLAYER==1:
             ball_state1, ball_state2, state1, state2, reward1, reward2,state1_ob,state2_ob,terminal = game.GameState(train=1,
                                                                                         action1=action_trans(a1_t),)
@@ -262,10 +270,14 @@ def trainNetwork(s, readout, sess,w_fc):
                     a : a1_batch,
                     s : s1_j_batch}   #s1_j_batch是旧的状态
                 )
-            print("/ Lost", cost.eval(feed_dict={
+            print("/Player1 Lost", cost.eval(feed_dict={
                 y: y1_batch,
                 a: a1_batch,
                 s: s1_j_batch}))
+            print("/Player1 Lost", cost.eval(feed_dict={
+                y: y2_batch,
+                a: a2_batch,
+                s: s2_j_batch}))
 
         # update the old values
         s1_t = s1_t1
@@ -275,6 +287,10 @@ def trainNetwork(s, readout, sess,w_fc):
         # save progress every 10000 iterations
         if t % 10000 == 0 and PLAYER==0:
             saver.save(sess, 'saved_networks/' + GAME + '-dqn', global_step = t)
+
+        if t % 100 == 0:
+            data = sess.run(merged_summary_op)
+            summary_writer.add_summary(data, t)
 
         # print info
         state = ""
@@ -288,6 +304,9 @@ def trainNetwork(s, readout, sess,w_fc):
         print("TIMESTEP", t, "/ STATE", state, \
             "/ EPSILON", epsilon, "/ ACTION", action_index, "/ REWARD", reward1, \
             "/ Q_MAX %e" % np.max(readout1_t))
+
+        print( "/ ACTION", action_index, "/ REWARD", reward2, \
+            "/ Q_MAX %e" % np.max(readout2_t))
 
         print("regularcost", regularcost.eval())
         # write info to files

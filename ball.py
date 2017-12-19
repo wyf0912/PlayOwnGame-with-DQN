@@ -108,16 +108,16 @@ pygame.init()
 # 游戏界面像素大小
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 pygame.display.set_caption('Play ball')
-background = pygame.image.load('background.png').convert()
-win = pygame.image.load('win.png').convert_alpha()
+background = pygame.image.load('./resource/background.png').convert()
+win = pygame.image.load('./resource/win.png').convert_alpha()
 # 游戏循环帧率设置
 clock = pygame.time.Clock()
 
 # 判断游戏循环退出的参数
 running = True
-player1=Player("player.png",init_pos=[SCREEN_WIDTH/2-55,0])
-player2=Player("player2.png",init_pos=[SCREEN_WIDTH/2-55,SCREEN_HEIGHT-21])
-ball=Ball("ball.png")
+player1=Player("./resource/player.png",init_pos=[SCREEN_WIDTH/2-55,0])
+player2=Player("./resource/player2.png",init_pos=[SCREEN_WIDTH/2-55,SCREEN_HEIGHT-21])
+ball=Ball("./resource/ball.png")
 
 resultflag=0
 
