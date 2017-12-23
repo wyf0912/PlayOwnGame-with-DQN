@@ -25,8 +25,8 @@ Except for no convolutional neural network, the rest of the model is the same as
 ### the problem I met at the moment
 I have changed the model several times. But it still didn't work well.<br> 
 This is the training effect. It still not trained very well. It used to be worse because the size of the neural netawork is too small. And I expended to about one hundred times as large as it used to be. And it seems to get better.
-<video id="video" controls="" preload="none" poster="github_img/UI.jpg">
-      <source id="mp4" src="github_img/four-dirctions.mp4" type="video/mp4">
+<video id="video" controls="" preload="none" poster="https://raw.githubusercontent.com/wyf0912/PlayOwnGame-with-DQN/master/github_img/UI.jpg">
+      <source id="mp4" src="https://raw.githubusercontent.com/wyf0912/PlayOwnGame-with-DQN/master/github_img/four-dirctions.mp4" type="video/mp4">
       <p>Your user agent does not support the HTML5 Video element.</p>
     </video>
 
