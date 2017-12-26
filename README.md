@@ -24,5 +24,5 @@ Except for no convolutional neural network, the rest of the model is the same as
 ## The AI is still training on my laptop and server
 ### the problem I met at the moment
 I have changed the model several times. But it still didn't work well.<br> 
-This is the training effect. It still not trained very well. It used to be worse because the size of the neural netawork is too small. And I expended to about one hundred times as large as it used to be. And it seems to get better.
-<iframe height=960 width=640 src="https://raw.githubusercontent.com/wyf0912/PlayOwnGame-with-DQN/master/github_img/对抗.mp4">
+This is the training effect. It still not trained very well. It used to be worse because the size of the neural netawork is too small. And I expended to about one hundred times as large as it used to be. And it seems to get better.<br>
+![image](https://raw.githubusercontent.com/wyf0912/PlayOwnGame-with-DQN/master/github_img/对抗.gif) 
