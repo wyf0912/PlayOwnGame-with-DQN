@@ -11,18 +11,18 @@ from collections import deque
 import tensorboard
 
 GAME = 'PlayBall' # the name of the game being played for log files
-ACTIONS = 5 # number of valid actions
+ACTIONS = 3 # number of valid actions
 GAMMA = 0.99 # decay rate of past observations
 OBSERVE = 100000. # timesteps to observe before training
-OBSERVE = 20000.
+OBSERVE = 200000.
 EXPLORE = 2000000. # frames over which to anneal epsilon
-EXPLORE = 800000. # frames over which to anneal epsilon
+EXPLORE = 2000000. # frames over which to anneal epsilon
 FINAL_EPSILON = 0.001 # final value of epsilon
 INITIAL_EPSILON = 1# starting value of epsilon
 REPLAY_MEMORY = 200000 # numberww of previous transitions to remember
-BATCH = 128 # size of minibatchwa 曾经64似乎太大了
+BATCH = 64 # size of minibatchwa 曾经64似乎太大了
 FRAME_PER_ACTION = 1
-PLAYER=0 #if player=0, Two computers are antagonistic to each other .if player=1,computer use player 1,if player=2 computer use player 2
+PLAYER=1#if player=0, Two computers are antagonistic to each other .if player=1,computer use player 1,if player=2 computer use player 2
 
 if PLAYER:
     OBSERVE=100
@@ -67,20 +67,18 @@ def createNetwork():
     # network weights
 
 
-    W_fc1 = weight_variable([48, 96])
-    b_fc1 = bias_variable([96])
-    W_fc2 = weight_variable([96, 96])
-    b_fc2 = bias_variable([96])
-    W_fc3 = weight_variable([96, 96])
-    b_fc3 = bias_variable([96])
-    W_fc4 = weight_variable([96, 96])
-    b_fc4 = bias_variable([96])
-    W_fc5 = weight_variable([96, 96])
-    b_fc5 = bias_variable([96])
-    W_fc6 = weight_variable([96, 96])
-    b_fc6 = bias_variable([96])
-    W_fc7 = weight_variable([96, ACTIONS])
-    b_fc7 = bias_variable([ACTIONS])
+    W_fc1 = weight_variable([48, 512])
+    b_fc1 = bias_variable([512])
+    W_fc2 = weight_variable([512, 1024])
+    b_fc2 = bias_variable([1024])
+    W_fc3 = weight_variable([1024, 1024])
+    b_fc3 = bias_variable([1024])
+    W_fc4 = weight_variable([1024, 512])
+    b_fc4 = bias_variable([512])
+    W_fc5 = weight_variable([512, 512])
+    b_fc5 = bias_variable([512])
+    W_fc6 = weight_variable([512, ACTIONS])
+    b_fc6 = bias_variable([ACTIONS])
 
     # input layer
     s = tf.placeholder("float", [None,48])
@@ -91,10 +89,9 @@ def createNetwork():
     h_fc3 = tf.nn.relu(tf.matmul(h_fc2, W_fc3) + b_fc3)
     h_fc4 = tf.nn.relu(tf.matmul(h_fc3, W_fc4) + b_fc4)
     h_fc5 = tf.nn.relu(tf.matmul(h_fc4, W_fc5) + b_fc5)
-    h_fc6 = tf.nn.relu(tf.matmul(h_fc5, W_fc6) + b_fc6)
     # readout layer
-    readout = tf.matmul(h_fc6, W_fc7) + b_fc7
-    w_fc=[W_fc1,W_fc2,W_fc3,W_fc4,W_fc5,W_fc6,W_fc7]
+    readout = tf.matmul(h_fc5, W_fc6) + b_fc6
+    w_fc=[W_fc1,W_fc2,W_fc3,W_fc4,W_fc5,W_fc6]
     return s, readout,w_fc
 
 def trainNetwork(s, readout, sess,w_fc):
@@ -103,8 +100,8 @@ def trainNetwork(s, readout, sess,w_fc):
     y = tf.placeholder("float", [None]) #y是q值
     readout_action = tf.reduce_sum(tf.multiply(readout, a), reduction_indices=1)
 
-    regularcost = tf.contrib.layers.l2_regularizer(0.001)(w_fc[0]) #L2正则化
-    cost = tf.reduce_mean(tf.square(y - readout_action))+regularcost
+    #regularcost = tf.contrib.layers.l2_regularizer(0.001)(w_fc[0]) #L2正则化
+    cost = tf.reduce_mean(tf.square(y - readout_action)) #+regularcost
 
     train_step = tf.train.AdamOptimizer(1e-6).minimize(cost)
 
@@ -149,7 +146,7 @@ def trainNetwork(s, readout, sess,w_fc):
     # start training
     epsilon = INITIAL_EPSILON
     t = 0
-    while "flappy bird" != "angry bird":
+    while 1:
         # choose an action epsilon greedily
 
         readout1_t = readout.eval(feed_dict={s : s1_t})[0]
@@ -245,7 +242,7 @@ def trainNetwork(s, readout, sess,w_fc):
                     y2_batch.append(r2_batch[i])
                 else:
                     y2_batch.append(r2_batch[i] + GAMMA * np.max(readout2_j1_batch[i]))
-
+            '''
             # perform gradient step
             if PLAYER==2:
                 train_step.run(feed_dict = {
@@ -259,7 +256,7 @@ def trainNetwork(s, readout, sess,w_fc):
                     a: a2_batch,
                     s: s2_j_batch}
                 )
-
+            '''
             if PLAYER == 0:
                 train_step.run(feed_dict={
                     y: y2_batch,
@@ -309,7 +306,7 @@ def trainNetwork(s, readout, sess,w_fc):
         print( "/ ACTION", action_index, "/ REWARD", reward2, \
             "/ Q_MAX %e" % np.max(readout2_t))
 
-        print("regularcost", regularcost.eval())
+        #print("regularcost", regularcost.eval())
         # write info to files
         '''
         if t % 10000 <= 100:

@@ -61,7 +61,7 @@ class Ball(pygame.sprite.Sprite):
 
 # 玩家控制的板的位置
 class Player(pygame.sprite.Sprite):
-    def __init__(self, img, init_pos=0):
+    def __init__(self, img,id, init_pos=0):
         pygame.sprite.Sprite.__init__(self)
         self.image = pygame.image.load(img).convert_alpha()
         self.rect=pygame.Rect([0,0,109,21])
@@ -69,18 +69,22 @@ class Player(pygame.sprite.Sprite):
         #self.image=self.image.subsurface(self.rect)
         self.speed=8
         self.score=0
+        self.id=id
 
     # 向上移动，需要判断边界
     def moveUp(self):
-        if self.rect.top <= 0:
+        if self.rect.top <= 100 and self.id == 2:
+            self.rect.top = 100
+        elif self.rect.top <= 0:
             self.rect.top = 0
         else:
             self.rect.top -= self.speed
 
-
     # 向下移动，需要判断边界
     def moveDown(self):
-        if self.rect.top >= SCREEN_HEIGHT - self.rect.height:
+        if (self.rect.top >= SCREEN_HEIGHT - self.rect.height-100) and self.id == 1:
+            self.rect.top = SCREEN_HEIGHT - self.rect.height-100
+        elif self.rect.top >= SCREEN_HEIGHT - self.rect.height:
             self.rect.top = SCREEN_HEIGHT - self.rect.height
         else:
             self.rect.top += self.speed
@@ -115,16 +119,16 @@ clock = pygame.time.Clock()
 
 # 判断游戏循环退出的参数
 running = True
-player1=Player("./resource/player.png",init_pos=[SCREEN_WIDTH/2-55,0])
-player2=Player("./resource/player2.png",init_pos=[SCREEN_WIDTH/2-55,SCREEN_HEIGHT-21])
+player1=Player("./resource/player.png",init_pos=[SCREEN_WIDTH/2-55,0],id=1)
+player2=Player("./resource/player2.png",init_pos=[SCREEN_WIDTH/2-55,SCREEN_HEIGHT-21],id=2)
 ball=Ball("./resource/ball.png")
 
 resultflag=0
-
+detect_flag_1=0;detect_flag_2=0
 def GameState(train=0,action1=[],action2=[]):
     # 控制游戏最大帧率为 60
     #clock.tick(60)
-    global resultflag
+    global resultflag,detect_flag_1,detect_flag_2
     if not train:
         clock.tick(60)
     # 绘制背景
@@ -159,7 +163,6 @@ def GameState(train=0,action1=[],action2=[]):
     screen.blit(score_text2, text_rect2)
     # 获取键盘事件（上下左右按键）
     key_pressed = pygame.key.get_pressed()
-
     if resultflag:
         ball.speed=[0,0]
         player1.speed=0
@@ -175,16 +178,22 @@ def GameState(train=0,action1=[],action2=[]):
         player1.rect.topleft=[SCREEN_WIDTH/2-55,0]
         player2.rect.topleft=[SCREEN_WIDTH/2-55,SCREEN_HEIGHT-21]
 
-    if action1==[]:
+    if action1 == []:
         # 处理键盘事件（移动玩家的位置）
         if key_pressed[K_w]:
             player1.moveUp()
-        if key_pressed[K_s]:
+            action1_sum = [1, 0, 0, 0]
+        elif key_pressed[K_s]:
             player1.moveDown()
-        if key_pressed[K_a]:
+            action1_sum = [0, 1, 0, 0]
+        elif key_pressed[K_a]:
             player1.moveLeft()
-        if key_pressed[K_d] :
+            action1_sum = [0, 0, 1, 0]
+        elif key_pressed[K_d] :
             player1.moveRight()
+            action1_sum = [0, 0, 0, 1]
+        else:
+            action1_sum=[0,0,0,0]
     else:
         if action1[0]:
             player1.moveUp()
@@ -194,15 +203,22 @@ def GameState(train=0,action1=[],action2=[]):
             player1.moveLeft()
         if action1[3]:
             player1.moveRight()
-    if action2==[]:
+        action1_sum=action1
+    if action2 == []:
         if key_pressed[K_RIGHT]:
             player2.moveRight()
-        if key_pressed[K_LEFT]:
+            action2_sum = [0 , 0, 0, 1]
+        elif key_pressed[K_LEFT]:
             player2.moveLeft()
-        if key_pressed[K_DOWN]:
+            action2_sum = [0, 0, 1, 0]
+        elif key_pressed[K_DOWN]:
             player2.moveDown()
-        if key_pressed[K_UP]:
+            action2_sum = [0, 1, 0, 0]
+        elif key_pressed[K_UP]:
             player2.moveUp()
+            action2_sum = [1, 0, 0, 0]
+        else:
+            action2_sum = [0, 0, 0, 0]
     else:
         if action2[0]:
             player2.moveUp()
@@ -212,13 +228,13 @@ def GameState(train=0,action1=[],action2=[]):
             player2.moveLeft()
         if action2[3]:
             player2.moveRight()
-
+        action2_sum = action2
     ball_state1=[ball.rect.left,ball.rect.right,ball.rect.top,ball.rect.bottom]
     ball_state2 = [ball.rect.left, ball.rect.right,  SCREEN_HEIGHT-ball.rect.bottom,SCREEN_HEIGHT-ball.rect.top]
     state1=[player1.rect.left,player1.rect.right,player1.rect.top,player1.rect.bottom]
     state2 = [player2.rect.left, player2.rect.right, SCREEN_HEIGHT-player2.rect.bottom, SCREEN_HEIGHT-player2.rect.top]
     state1_ob=[player1.rect.left,player1.rect.right,SCREEN_HEIGHT-player1.rect.bottom, SCREEN_HEIGHT-player1.rect.top]
-    state2_ob = [player2.rect.left, player2.rect.right, player2.rect.bottom,player2.rect.top]
+    state2_ob = [player2.rect.left, player2.rect.right, player2.rect.top,player2.rect.bottom]
     reward1=player1.score-last_score_1
     #reward2=-(player1.score-last_score_1)
     reward2=player2.score-last_score_2
@@ -241,6 +257,30 @@ def GameState(train=0,action1=[],action2=[]):
         resultflag=1
     pygame.display.update()
 
+    if (ball_state1[3]<=state1[3] or reward1 == -1) and detect_flag_1==0:
+        detect_flag_1=1
+        if (ball_state1[0]+ball_state1[1]-state1[0]-state1[1])>0 and action1_sum[3]:
+            reward1 += 0.5  # 球掉在右边
+            #print("right")
+        if (ball_state1[0]+ball_state1[1]-state1[0]-state1[1])<0 and action1_sum[2]:
+            reward1 += 0.5  # 球掉在左边
+            #print("left")
+    if ball_state1[3] > state1[3]:
+        detect_flag_1=0
+
+
+    if (ball_state2[3]<=state2[3] or reward2 == -1) and detect_flag_2==0:
+        if (ball_state2[0]+ball_state2[1]-state2[0]-state2[1])>0 and action2_sum[3]:
+            reward1 += 0.5  # 球掉在右边
+            #print("right")
+        if (ball_state2[0]+ball_state2[1]-state2[0]-state2[1])<0 and action2_sum[2]:
+            reward1 += 0.5  # 球掉在左边
+            #print("left")
+    if ball_state2[3] > state2[3]:
+        detect_flag_2=0
+
+
+    #print(reward1,reward2)
     return ball_state1,ball_state2,state1,state2,reward1,reward2,state1_ob,state2_ob,resultflag
 if __name__=='__main__':
     while 1:
